@@ -1,10 +1,9 @@
 
-FROM golang:1.16
+FROM golang:1.16 AS builder
 
 WORKDIR /app
 
 COPY go.mod go.sum .
-
 RUN go mod download
 
 COPY cmd ./cmd
@@ -14,4 +13,9 @@ COPY main.go .
 
 RUN CGO_ENABLED=0 go build -o ./myapp
 
-CMD ["./myapp", "serve"]
+FROM scratch
+
+COPY --from=builder /app/myapp /myapp
+COPY --from=builder /app/templates /templates
+
+CMD ["/myapp", "serve"]
